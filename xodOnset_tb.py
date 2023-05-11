@@ -7,11 +7,10 @@
 # __::((xodmaOnset_tb.py))::__
 #
 # ___::((XODMK Programming Industries))::___
-# ___::((XODMK:CGBW:BarutanBreaks:djoto:2020))::___
+# ___::((XODMK:CGBW:BarutanBreaks:djoto:2023))::___
 #
 #
 # XODMK Onset Detection Testbench
-#
 #
 # *****************************************************************************
 # /////////////////////////////////////////////////////////////////////////////
@@ -21,10 +20,9 @@
 import os
 import sys
 import numpy as np
-#import scipy as sp
 import soundfile as sf
-#import librosa
-#import librosa.display
+# import librosa
+# import librosa.display
 import matplotlib.pyplot as plt
 
 
@@ -33,17 +31,18 @@ rootDir = os.path.dirname(currentDir)
 audioSrcDir = rootDir + "/data/src/wav"
 audioOutDir = rootDir + "/data/res/wavout"
 
-print("currentDir: " + currentDir)
 print("rootDir: " + rootDir)
+print("currentDir: " + currentDir)
 print("audioSrcDir: " + audioSrcDir)
 print("audioOutDir: " + audioOutDir)
-
 
 sys.path.insert(0, rootDir+'/xodma')
 
 from xodmaAudioTools import load_wav
-from xodmaOnset import detectOnset
-# from xodmaSpectralTools import amplitude_to_db, stft, istft, peak_pick
+from xodmaOnset import detectOnset, onset_strength, onset_backtrack
+from xodmaSpectralTools import magphase, amplitude_to_db, stft, istft, peak_pick
+from xodmaSpectralUtil import frames_to_samples, frames_to_time
+from xodmaSpectralPlot import specshow
 
 sys.path.insert(1, rootDir+'/xodUtil')
 import xodPlotUtil as xodplt
@@ -54,7 +53,7 @@ import xodPlotUtil as xodplt
 
 
 # temp python debugger - use >>>pdb.set_trace() to set break
-#import pdb
+import pdb
 
 # // *---------------------------------------------------------------------* //
 
@@ -96,115 +95,6 @@ def arrayFromFile(fname):
 # // *---------------------------------------------------------------------* //
 
 
-# def detectOnset(y, NFFT, fs):
-#    '''Detect onset events for a time-domain signal
-#
-#    Parameters
-#    ----------
-#    y : np.ndarray [shape=(n,)] audio time series
-#    
-#    NFFT : number of FFT points
-#    fs : audio sample rate
-#
-#    Returns
-#    -------
-#    yExp : np.ndarray [shape=(rate * n,)]
-#        audio time series spectrally mutated
-#
-#
-#    Examples:
-#        NFFT = 2048,
-#        yRxExp = detectOnset(ySrc, NFFT, fs)
-#
-#    '''
-#
-#    # currently uses fixed hop_length
-#    onset_env = onset_strength(y, fs, hop_length=int(NFFT/4), aggregate=np.median)
-#
-#    # peak_pick
-#    
-#    #peaks = peak_pick(onset_env, 3, 3, 3, 5, 0.5, 10)    
-#        
-#    #    pre_max   : int >= 0 [scalar]
-#    #        number of samples before `n` over which max is computed
-#    #
-#    #    post_max  : int >= 1 [scalar]
-#    #        number of samples after `n` over which max is computed
-#    #
-#    #    pre_avg   : int >= 0 [scalar]
-#    #        number of samples before `n` over which mean is computed
-#    #
-#    #    post_avg  : int >= 1 [scalar]
-#    #        number of samples after `n` over which mean is computed
-#    #
-#    #    delta     : float >= 0 [scalar]
-#    #        threshold offset for mean
-#    #
-#    #    wait      : int >= 0 [scalar]
-#    #        number of samples to wait after picking a peak
-#    #
-#    #    Returns
-#    #    -------
-#    #    peaks     : np.ndarray [shape=(n_peaks,), dtype=int]
-#    #        indices of peaks in `x`
-#    
-#    #peaks = peak_pick(onset_env, 3, 3, 3, 5, 0.5, 10)
-#    #peaks = peak_pick(onset_env, 6, 6, 6, 6, 0.5, 8)
-#    peaks = peak_pick(onset_env, 7, 7, 7, 7, 0.5, 7)
-#    #peaks = peak_pick(onset_env, 9, 9, 9, 9, 0.5, 7)
-#    #peaks = peak_pick(onset_env, 12, 12, 12, 12, 0.5, 6)
-#    
-#    #peak_onsets_ch1 = np.array(onset_env_ch1)[peaks_ch1]
-#    #peak_onsets_ch2 = np.array(onset_env_ch2)[peaks_ch2]
-#
-#
-#    # // *-----------------------------------------------------------------* //
-#    # // *--- Calculate Peak Regions (# frames of peak regions) ---*
-#
-#    # peak_regions = get_peak_regions(peaks, len(onset_env))
-#
-#
-#
-#    # // *-----------------------------------------------------------------* //
-#    # // *--- Perform the STFT ---*
-#    
-#    ySTFT = stft(y, NFFT)
-#
-#    
-#    assert (ySTFT.shape[1] == len(onset_env)), "Number of STFT frames != len onset_env"
-#    
-#   
-#    
-#    # // *-----------------------------------------------------------------* //
-#    # // *--- Plot Peak-Picking results vs. Spectrogram ---*
-#
-#    #times_ch1 = frames_to_time(np.arange(len(onset_env_ch1)), fs, hop_length=512)
-#    # currently uses fixed hop_length
-#    times = frames_to_time(np.arange(len(onset_env)), fs, NFFT/4)
-#    
-#    plt.figure(facecolor='silver', edgecolor='k', figsize=(12, 8))
-#    ax = plt.subplot(2, 1, 1)
-#    specshow(amplitude_to_db(magphase(ySTFT)[0], ref=np.max), y_axis='log', x_axis='time', cmap=plt.cm.viridis)
-#    plt.title('CH1: Spectrogram (STFT)')
-#    
-#    plt.subplot(2, 1, 2, sharex=ax)
-#    plt.plot(times, onset_env, alpha=0.66, label='Onset strength')
-#    plt.vlines(times[peaks], 0, onset_env.max(), color='r', alpha=0.8,
-#                                                   label='Selected peaks')
-#    plt.legend(frameon=True, framealpha=0.66)
-#    plt.axis('tight')
-#    plt.tight_layout()
-#    
-#    plt.xlabel('time')
-#    plt.ylabel('Amplitude')
-#    plt.title('Onset Strength detection & Peak Selection')
-
-
-# // *---------------------------------------------------------------------* //
-# // *---------------------------------------------------------------------* //
-# // *---------------------------------------------------------------------* //
-
-
 print('// //////////////////////////////////////////////////////////////// //')
 print('// *--------------------------------------------------------------* //')
 print('// *---::XODMK Spectral Mutate test::---*')
@@ -221,6 +111,9 @@ print('// //////////////////////////////////////////////////////////////// //')
 
 srcSel = 1
 
+plots = 1
+
+plotOnsetEnv = 1
 
 # STEREO source signal
 #wavSrc = 'dsvco.wav'
@@ -317,23 +210,6 @@ print('System sample period: ------------------ '+str(aT))
 # if sample rates are different, resample B to A's rate
 # ???
 
-
-# // *--- Plot - source signal ---*
-
-if 1:
-    
-    fnum = 3
-    pltTitle = 'Input Signals: aSrc_ch1'
-    pltXlabel = 'sinArray time-domain wav'
-    pltYlabel = 'Magnitude'
-    
-    # define a linear space from 0 to 1/2 Fs for x-axis:
-    xaxis = np.linspace(0, len(aSrc_ch1), len(aSrc_ch1))
-    
-    xodplt.xodPlot1D(fnum, aSrc_ch1, xaxis, pltTitle, pltXlabel, pltYlabel)
-
-#pdb.set_trace()
-
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
 
@@ -346,16 +222,95 @@ if 1:
     # peakWait = 0.03
     
     peakThresh = 0.07
-    peakWait = 0.33 
+    peakWait = 0.33
+
+    hop_length = 512
+    backtrack = False
     
     plots = 1
 
-    yOnsetSamples, yOnsetTime = detectOnset(aSrc_ch1, peakThresh, peakWait)
+    # optional simple call:
+    # yOnsetSamples, yOnsetTime = detectOnset(aSrc_ch1, peakThresh, peakWait)
+
+    yOnsetSamples, yOnsetTime = detectOnset(aSrc_ch1, peakThresh, peakWait, hop_length, sr, backtrack)
+
+    if plotOnsetEnv == 1:
+        onset_env = onset_strength(y=aSrc_ch1, sr=sr, hop_length=hop_length, aggregate=np.median)
+
+        # Match tb peak params with xodmaOnset.py default **kwargs
+        pre_max = 0.03 * sr // hop_length  # 30ms
+        post_max = 0.00 * sr // hop_length + 1  # 0ms
+        pre_avg = 0.10 * sr // hop_length  # 100ms
+        post_avg = 0.10 * sr // hop_length + 1  # 100ms
+        wait = peakWait * sr // hop_length  # 30ms
+        delta = peakThresh
+
+        # kwargs = {'pre_max': 2.0, 'post_max': 1.0, 'pre_avg': 9.0, 'post_avg': 10.0, 'wait': 30.0, 'delta': 0.07}
+        kwargs = {'pre_max': pre_max, 'post_max': post_max, 'pre_avg': pre_avg,
+                  'post_avg': post_avg, 'wait': wait, 'delta': delta}
+
+        # # Peak pick the onset envelope
+        onsets = peak_pick(onset_env, **kwargs)
+        # pdb.set_trace()
+        # Optionally backtrack the events
+        if backtrack:
+            onsets = onset_backtrack(onsets, onset_env)
 
     print('\ndetectOnset complete')
 
 
 # // *---------------------------------------------------------------------* //
+# // *--- Plot - source signal ---*
+
+if 1:
+
+    fnum = 3
+    pltTitle = 'Input Signals: aSrc_ch1'
+    pltXlabel = 'sinArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, len(aSrc_ch1), len(aSrc_ch1))
+
+    xodplt.xodPlot1D(fnum, aSrc_ch1, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+
+# // *-----------------------------------------------------------------* //
+# // *--- Plot Peak-Picking results vs. Spectrogram ---*
+
+if plots > 0:
+    # // *-----------------------------------------------------------------* //
+    # // *--- Perform the STFT ---*
+
+    NFFT = 2048
+    ySTFT = stft(aSrc_ch1, NFFT)
+    # assert (ySTFT.shape[1] == len(onset_env)), "Number of STFT frames != len onset_env"
+
+    # times = frames_to_time(np.arange(ySTFT.shape[1]), sr, NFFT / 4)
+    times = frames_to_time(np.arange(ySTFT.shape[1]), sr, NFFT / 4)
+    plt.figure(facecolor='silver', edgecolor='k', figsize=(12, 8))
+    ax = plt.subplot(2, 1, 1)
+
+    specshow(amplitude_to_db(magphase(ySTFT)[0], ref=np.max), y_axis='log', x_axis='time', cmap=plt.cm.viridis)
+    # librosa.display.specshow(amplitude_to_db(magphase(ySTFT)[0], ref=np.max), y_axis='log', x_axis='time', cmap=plt.cm.viridis)
+    plt.title('CH1: Spectrogram (STFT)')
+
+    plt.subplot(2, 1, 2, sharex=ax)
+    plt.plot(times, onset_env, alpha=0.66, label='Onset strength')
+    plt.vlines(times[onsets], 0, onset_env.max(), color='r', alpha=0.8,
+               label='Selected peaks')
+
+    # plt.plot(times, onset_env, alpha=0.66, label='Onset strength')
+    # plt.vlines(times[onsets], 0, onset_env.max(), color='r', alpha=0.8,
+    #            label='Selected peaks')
+
+    plt.legend(frameon=True, framealpha=0.66)
+    plt.axis('tight')
+    plt.tight_layout()
+
+    plt.xlabel('time')
+    plt.ylabel('Amplitude')
+    plt.title('Onset Strength detection & Peak Selection')
 
 plt.show()
 

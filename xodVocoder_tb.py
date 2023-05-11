@@ -37,7 +37,7 @@ print("audioOutDir: " + audioOutDir)
 sys.path.insert(0, rootDir + '/xodma')
 
 from xodmaAudioTools import load_wav, write_wav
-from xodmaVocoder import pvTimeStretch, pvPitchShift
+from xodmaVocoder import pvTimeStretch, pvPitchShift, pvRobotStretch
 from xodmaSpectralPlot import specshow
 
 sys.path.insert(1, rootDir + '/xodUtil')
@@ -103,7 +103,7 @@ print('// //////////////////////////////////////////////////////////////// //')
 # srcSel: 0 = wavSrc, 1 = amenBreak, 2 = sineWave48K, 
 #         3 = multiSin test, 4 = text array input
 
-srcSel = 1
+srcSel = 0
 
 # STEREO source signal
 # wavSrc = 'dsvco.wav'
@@ -115,7 +115,8 @@ srcSel = 1
 # MONO source signal
 # wavSrc = 'multiSinOut48KHz_1K_3K_5K_7K_9K_16sec.wav'
 
-wavSrcA = 'opium_house_1.wav'
+wavSrcA = 'jahniBoyQuestaVox11.wav'
+# wavSrcA = 'opium_house_1.wav'
 # wavSrcB = 'scoolreaktor_beatx03.wav'
 # wavSrcB = 'gorgulans_beatx01.wav'
 
@@ -223,8 +224,7 @@ if 1:
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
 
-
-if 1:
+if 0:
     print('\n')
     print('// *---:: Phase Vocoder Time-Stretch EFX test ::---*')
 
@@ -275,6 +275,69 @@ if 1:
     print('\nwrote .wav file yOriginal.wav')
     print('\nwrote .wav file yRxFast.wav')
     print('\nwrote .wav file ySxSlow.wav')
+
+
+if 1:
+    print('\n')
+    print('// *---:: Phase Vocoder RobotSmith EFX test ::---*')
+
+    '''
+    Compress to be twice as fast
+
+    >>> y, sr = librosa.load(librosa.util.example_audio_file())
+    >>> y_fast = librosa.effects.time_stretch(y, 2.0)
+
+    Or half the original speed
+
+    >>> y_slow = librosa.effects.time_stretch(y, 0.5) '''
+
+    # Time Compress rate:
+    timeCompress = 1.33
+
+    # Time Expand rate:
+    timeExpand = 0.56
+
+    # Vox Modulation Depth - range[0.01, 1.0] :
+    vxmod = 0.05
+
+    # Vox Mod Stereo
+    vxtilt = -0.5
+
+    vxmodL = vxmod - (vxtilt * vxmod)
+    vxmodR = vxmod + (vxtilt * vxmod)
+
+    yRxFast_ch1 = pvRobotStretch(aSrc_ch1, timeCompress, vxmodL)
+    yRxFast_ch2 = pvRobotStretch(aSrc_ch2, timeCompress, vxmodR)
+
+    yRxFast = np.transpose(np.column_stack((yRxFast_ch1, yRxFast_ch2)))
+
+    print('\nPerformed time_compress by ' + str(1/timeCompress))
+
+    # pdb.set_trace()
+
+    ySxSlow_ch1 = pvRobotStretch(aSrc_ch1, timeExpand, vxmodL)
+    ySxSlow_ch2 = pvRobotStretch(aSrc_ch2, timeExpand, vxmodR)
+
+    ySxSlow = np.transpose(np.column_stack((ySxSlow_ch1, ySxSlow_ch2)))
+
+    print('\nPerformed time_stretch by ' + str(1/timeExpand))
+
+    print('\n// *---:: Write .wav files ::---*')
+
+    outFilePath = audioOutDir + '/yOriginal.wav'
+    write_wav(outFilePath, aSrc, afs)
+
+    outFilePath = audioOutDir + '/yRxFast.wav'
+    write_wav(outFilePath, yRxFast, afs)
+
+    outFilePath = audioOutDir + '/ySxSlow.wav'
+    write_wav(outFilePath, ySxSlow, afs)
+
+    print('\n\nOutput directory: ' + audioOutDir)
+    print('\nwrote .wav file yOriginal.wav')
+    print('\nwrote .wav file yRxFast.wav')
+    print('\nwrote .wav file ySxSlow.wav')
+
 
 # // *---------------------------------------------------------------------* //
 

@@ -147,12 +147,12 @@ def time_stretch(y, rate):
     --------
     Compress to be twice as fast
     (xodAudiotools.load_wav)
-    >>> [y, numChan, sr, aLength, aSamples] = load_wav(audioSrc, wavLength)
-    >>> y_fast = time_stretch(y, 2.0)
+    # >>> [y, numChan, sr, aLength, aSamples] = load_wav(audioSrc, wavLength)
+    # >>> y_fast = time_stretch(y, 2.0)
 
     Or half the original speed
 
-    >>> y_slow = time_stretch(y, 0.5) '''
+    # >>> y_slow = time_stretch(y, 0.5) '''
 
     if rate <= 0:
         print('\nrate must be a positive number')
@@ -194,16 +194,16 @@ def pitch_shift(y, sr, n_steps, bins_per_octave=12):
     Shift up by a major third (four half-steps)
 
     (xodAudiotools.load_wav)
-    >>> [y, numChan, sr, aLength, aSamples] = load_wav(audioSrc, wavLength)
-    >>> y_third = pitch_shift(y, sr, n_steps=4)
+    # >>> [y, numChan, sr, aLength, aSamples] = load_wav(audioSrc, wavLength)
+    # >>> y_third = pitch_shift(y, sr, n_steps=4)
 
     Shift down by a tritone (six half-steps)
 
-    >>> y_tritone = pitch_shift(y, sr, n_steps=-6)
+    # >>> y_tritone = pitch_shift(y, sr, n_steps=-6)
 
     Shift up by 3 quarter-tones
 
-    >>> y_three_qt = pitch_shift(y, sr, n_steps=3, bins_per_octave=24) '''
+    # >>> y_three_qt = pitch_shift(y, sr, n_steps=3, bins_per_octave=24) '''
 
     if bins_per_octave < 1 or not np.issubdtype(type(bins_per_octave), np.int):
         sys.exit('ERROR: func pitch_shift - bins_per_octave must be a positive integer.')
@@ -1016,16 +1016,11 @@ srcSel = 0
 # wavSrc = 'multiSinOut48KHz_1K_3K_5K_7K_9K_16sec.wav'
 
 # wavSrcA = 'astroman2020_vox136bpmx03.wav'
-wavSrcA = '30 ambient 138 bpm.wav'
+#wavSrcA = '30 ambient 138 bpm.wav'
 # wavSrcA = 'sebek_bt133x001.wav'
 
-# wavSrcB = 'astroman2020_vox136bpmx04.wav'
-# wavSrcB = 'astroman2020_bts136bpmx01.wav'
-# wavSrcB = 'scoolreaktor_beatx03.wav'
-
-# wavSrcB = 'astroman2020_hurdy136bpmx02.wav'
-# wavSrcB = 'dsvco.wav'
-wavSrcB = '30 ambient 138 bpm.wav'
+wavSrcA = "jahniBoyQuestaVox11.wav"
+wavSrcB = "ebolaCallibriscian_uCCrhythm.wav"
 
 # length of input signal:
 # '0'   => full length of input .wav file
@@ -1187,16 +1182,16 @@ if 0:
 
     print('\n// *---:: Write .wav files ::---*')
 
-    outFilePath = xdir.audioOutDir + 'yOriginal.wav'
+    outFilePath = audioOutDir + 'yOriginal.wav'
     write_wav(outFilePath, aSrc, afs)
 
-    outFilePath = xdir.audioOutDir + 'yRxFast.wav'
+    outFilePath = audioOutDir + 'yRxFast.wav'
     write_wav(outFilePath, yRxFast, sr)
 
-    outFilePath = xdir.audioOutDir + 'ySxSlow.wav'
+    outFilePath = audioOutDir + 'ySxSlow.wav'
     write_wav(outFilePath, ySxSlow, sr)
 
-    print('\n\nOutput directory: ' + xdir.audioOutDir)
+    print('\n\nOutput directory: ' + audioOutDir)
     print('\nwrote .wav file yOriginal.wav')
     print('\nwrote .wav file yRxFast.wav')
     print('\nwrote .wav file ySxSlow.wav')
@@ -1205,27 +1200,23 @@ if 0:
     print('\n// *---:: spectraMutate test ::---*')
 
     ''' Experimental '''
-
     pmseed = 5
-
     # ULR : 0=uncoupled / 1=left / 2=right (default)
     ULR = 2
-
     ySpectraMutate = spectraMutate(aSrc, NFFT, sr, pmseed, ULR=ULR)
 
     #    yRxExp_ch1 = spectrExp(ySrc_ch1, NFFT, fs, pmseed)
     #    yRxExp_ch2 = spectrExp(ySrc_ch2, NFFT, fs, pmseed)
     #
     #    yRxExp = np.transpose( np.column_stack((yRxExp_ch1, yRxExp_ch2)) )
-
     print('\nPerformed spectral Experiment 1')
 
     print('\n// *---:: Write .wav files ::---*')
 
-    outFilePath = xdir.audioOutDir + 'ySpectraMutate.wav'
+    outFilePath = audioOutDir + 'ySpectraMutate.wav'
     write_wav(outFilePath, ySpectraMutate, sr)
 
-    print('\n\nOutput directory: ' + xdir.audioOutDir)
+    print('\n\nOutput directory: ' + audioOutDir)
     print('\nwrote .wav file ySpectraMutate.wav')
 
 if 1:
@@ -1233,7 +1224,7 @@ if 1:
 
     ''' Experimental '''
 
-    wavOutNm = 'astroman2020_mx136bpm.wav'
+    wavOutNm = 'astroman2023_mx136bpm.wav'
 
     pmseed = 23
 
@@ -1254,10 +1245,10 @@ if 1:
 
     print('\n// *---:: Write .wav files ::---*')
 
-    outFilePath = xdir.audioOutDir + wavOutNm
+    outFilePath = audioOutDir + wavOutNm
     write_wav(outFilePath, ySpectraMutate2CH, sr)
 
-    print('\n\nOutput directory: ' + xdir.audioOutDir)
+    print('\n\nOutput directory: ' + audioOutDir)
     print('\nwrote .wav file wavOutNm.wav')
 
 # // *---------------------------------------------------------------------* //
