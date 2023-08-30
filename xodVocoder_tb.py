@@ -33,8 +33,8 @@ print("audioOutDir: " + audioOutDir)
 
 sys.path.insert(0, rootDir + '/xodma')
 
-from xodmaAudioTools import load_wav, write_wav
-from xodmaSpectralTools import amplitude_to_db, stft, istft, magphase, peak_pick
+from xodmaAudioTools import load_wav, write_wav, peak_pick
+from xodmaSpectralTools import amplitude_to_db, stft, istft, magphase
 from xodmaVocoder import pvTimeStretch, pvPitchShift, pvRobotStretch
 from xodmaSpectralPlot import specshow
 from xodmaMiscUtil import valid_audio
@@ -67,7 +67,7 @@ def arrayFromFile(fname):
         fname is the name of existing file in dataInDir (defined above)
         example: newArray = arrayFromFile('mydata_in.dat') """
 
-    fileSrcFull = audioSrcDir + fname
+    fileSrcFull = audioSrcDir + '/' + fname
 
     datalist = []
     with open(fileSrcFull, mode='r') as infile:

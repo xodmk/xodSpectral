@@ -219,10 +219,10 @@ if 1:
     
     # " Default from 'large-scale search' "
     # peakThresh = 0.07
-    # peakWait = 0.03
+    # peakWait = 0.33
     
     peakThresh = 0.07
-    peakWait = 0.33
+    peakWait = 5
 
     hop_length = 512
     backtrack = False
@@ -242,7 +242,7 @@ if 1:
         post_max = 0.00 * sr // hop_length + 1  # 0ms
         pre_avg = 0.10 * sr // hop_length  # 100ms
         post_avg = 0.10 * sr // hop_length + 1  # 100ms
-        wait = peakWait * sr // hop_length  # 30ms
+        wait = peakWait  # 30ms
         delta = peakThresh
 
         # kwargs = {'pre_max': 2.0, 'post_max': 1.0, 'pre_avg': 9.0, 'post_avg': 10.0, 'wait': 30.0, 'delta': 0.07}
@@ -292,7 +292,8 @@ if plots > 0:
     ax = plt.subplot(2, 1, 1)
 
     specshow(amplitude_to_db(magphase(ySTFT)[0], ref=np.max), y_axis='log', x_axis='time', cmap=plt.cm.viridis)
-    # librosa.display.specshow(amplitude_to_db(magphase(ySTFT)[0], ref=np.max), y_axis='log', x_axis='time', cmap=plt.cm.viridis)
+    # librosa.display.specshow(amplitude_to_db(magphase(ySTFT)[0], ref=np.max), y_axis='log',
+    #                          x_axis='time', cmap=plt.cm.viridis)
     plt.title('CH1: Spectrogram (STFT)')
 
     plt.subplot(2, 1, 2, sharex=ax)
