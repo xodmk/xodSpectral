@@ -122,9 +122,9 @@ print('// //////////////////////////////////////////////////////////////// //')
 
 # Algorithm Select:
 
-runAudioSTFT = 1        # Run EXP STFT <-> iSTFT
+runAudioSTFT = 0        # Run EXP STFT <-> iSTFT
 runVocoderPV1 = 1       # Run EXP using PV1 phase vocoder algorithm
-runRobotSmith = 1       # Run EXP using pvRobotSmith phase vocoder algorithm
+runRobotSmith = 0       # Run EXP using pvRobotSmith phase vocoder algorithm
 
 runPlots = 1            # Run Plotting
 
@@ -268,7 +268,7 @@ if runAudioSTFT:
             array1 = np.pad(aSrc_ch1, (0, shape2 - shape1), mode='constant', constant_values=0)
             array2 = aSrcInverse
         errArray = array1 - array2
-        sigArray = np.transpose(np.column_stack((array1, array1, errArray)))
+        sigArray = np.transpose(np.column_stack((array1, array2, errArray)))
 
         fnum += 1
         pltTitle = 'Wave Source vs. Inverse STFT'
@@ -292,7 +292,7 @@ if runVocoderPV1:
     n_fft = NFFT
 
     timeCompress = 1.33     # Time Compress rate
-    timeExpand = 0.56       # Time Expand rate
+    timeExpand = 1.0       # Time Expand rate
 
     yPV1_Compress_ch1 = pvTimeStretch(aSrc_ch1, timeCompress, n_fft)
     yPV1_Compress_ch2 = pvTimeStretch(aSrc_ch2, timeCompress, n_fft)
@@ -323,6 +323,52 @@ if runVocoderPV1:
     print('wrote .wav file yPV1_Original.wav')
     print('wrote .wav file yPV1_Compress.wav')
     print('wrote .wav file yPV1_Expand.wav')
+
+    if runPlots:
+        # fnum += 1
+        # pltTitle = 'Inverse STFT: aSrcInverse'
+        # pltXlabel = 'time-domain wav'
+        # pltYlabel = 'Magnitude'
+        #
+        # # define a linear space from 0 to 1/2 Fs for x-axis:
+        # xaxis = np.linspace(0, len(aSrcInverse), len(aSrcInverse))
+        # xodplt.xodPlot1D(fnum, aSrcInverse, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+        # Plot composite wav forms
+        shape1 = aSrc_ch1.shape[0]
+        shape2 = yPV1_Expand_ch1.shape[0]
+        if shape1 > shape2:
+            # Pad array2 with zeros
+            array1 = aSrc_ch1
+            array2 = np.pad(yPV1_Expand_ch1, (0, shape1 - shape2), mode='constant', constant_values=0)
+        elif shape2 > shape1:
+            # Pad array1 with zeros
+            array1 = np.pad(aSrc_ch1, (0, shape2 - shape1), mode='constant', constant_values=0)
+            array2 = yPV1_Expand_ch1
+        errArray = array1 - array2
+        sigArray = np.transpose(np.column_stack((array1, array2)))
+        # sigArray = np.transpose(np.column_stack((array1, array2, errArray)))
+
+        fnum += 1
+        pltTitle = 'Wave Source vs. Inverse STFT'
+        pltXlabel = 'time-domain wav'
+        pltYlabel = 'Magnitude'
+        # define a linear space from 0 to 1/2 Fs for x-axis:
+        xaxis = np.linspace(0, len(array1), len(array1))
+        xodplt.xodMultiPlot1D(fnum, sigArray, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+        fnum += 1
+        pltTitle = 'Error Array (sourceWav - vocodedWav)'
+        pltXlabel = 'time-domain wav'
+        pltYlabel = 'Magnitude'
+
+        # define a linear space from 0 to 1/2 Fs for x-axis:
+        xodplt.xodPlot1D(fnum, errArray, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+        fnum += 1
+        rrmsWinSize = STFTHOP
+        rmsName = 'wavSrc_ch1'
+        plot_rolling_rms(aSrc_ch1, rrmsWinSize, fnum, rmsName)
 
 
 # // *---------------------------------------------------------------------* //
